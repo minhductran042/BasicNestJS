@@ -8,7 +8,6 @@ export class PostsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getPosts() {
-    console.log(envConfig.ACCESS_TOKEN_SECRET);
     return this.prismaService.post.findMany()
   }
 
