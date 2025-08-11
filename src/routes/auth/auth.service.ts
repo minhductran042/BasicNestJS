@@ -27,7 +27,7 @@ export class AuthService {
                     throw new ConflictException('Email already exists');
                 }
             }
-            throw error; // rethrow other errors
+            throw error
         }
     }
 }

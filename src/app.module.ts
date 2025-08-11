@@ -10,7 +10,7 @@ import { AuthModule } from './routes/auth/auth.module';
   controllers: [AppController],
   providers: [AppService, {
     provide: 'APP_INTERCEPTOR',
-    useClass: ClassSerializerInterceptor
+    useClass: ClassSerializerInterceptor, 
   }],
 })
 export class AppModule {}
