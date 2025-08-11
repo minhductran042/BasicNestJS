@@ -1,5 +1,6 @@
 import { Exclude } from "class-transformer"
 import { IsDefined, IsEmail, IsString, MinLength } from "class-validator"
+import { Match } from "src/shared/decorator/custom-validator.decorator"
 
 export class LoginBodyDto {
     @IsEmail()
@@ -8,7 +9,7 @@ export class LoginBodyDto {
 
     @IsString()
     @IsDefined()
-    @MinLength(6)
+    @MinLength(6, {message: 'Password must be at least 6 characters long'})
     password: string
 }
 
@@ -19,6 +20,7 @@ export class RegisterBodyDto extends LoginBodyDto {
 
     @IsString()
     @IsDefined()
+    @Match('password')
     confirmPassword: string
 }
 
