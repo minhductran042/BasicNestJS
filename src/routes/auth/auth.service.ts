@@ -76,4 +76,36 @@ export class AuthService {
             refreshToken: refreshToken
         }
     }
+
+
+    async refreshToken(refreshToken: string) {
+        try {
+            //1. Kiểm tra xem refresh token có hợp lệ không
+            const decoded = await this.tokenService.verifyRefreshToken(refreshToken);
+
+            //2. Kiểm tra xem refresh token có tồn tại trong cơ sở dữ liệu không
+            await this.prismaService.refreshToken.findUniqueOrThrow({
+                where: {
+                    token: refreshToken
+                }
+            })
+            //3. Xoa token cũ
+            await this.prismaService.refreshToken.delete({
+                where: {
+                    token: refreshToken
+                }
+            });
+
+            //4. Tạo mới access token và refresh token
+            return await this.generateTokens({ userId: decoded.userId });
+        } catch (error) {
+            // Truong hợp đã sử dụng refresh token hoặc token không hợp lệ
+            if(error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new UnauthorizedException('Refresh token is invalid or has been used')
+                }
+            }
+            throw new UnauthorizedException
+        }
+    }
 }
