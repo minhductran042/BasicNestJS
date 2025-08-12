@@ -4,6 +4,7 @@ import { HashingService } from '../../shared/services/hashing.service';
 import { Prisma } from '../../../generated/prisma';
 import { TokenService } from 'src/shared/services/token.service';
 import { LoginBodyDto } from './auth.dto';
+import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helper';
 
 @Injectable()
 export class AuthService {
@@ -25,10 +26,8 @@ export class AuthService {
             })
             return user
         } catch (error) {
-           if(error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new ConflictException('Email already exists');
-                }
+           if(isUniqueConstraintPrismaError(error)) {
+                throw new ConflictException('Email already exists');
             }
             throw error
         }
@@ -100,10 +99,8 @@ export class AuthService {
             return await this.generateTokens({ userId: decoded.userId });
         } catch (error) {
             // Truong hợp đã sử dụng refresh token hoặc token không hợp lệ
-            if(error instanceof Prisma.PrismaClientKnownRequestError) {
-                if (error.code === 'P2025') {
-                    throw new UnauthorizedException('Refresh token is invalid or has been used')
-                }
+            if(isNotFoundPrismaError(error)) {
+                throw new UnauthorizedException('Refresh token is invalid or has been used')
             }
             throw new UnauthorizedException
         }
