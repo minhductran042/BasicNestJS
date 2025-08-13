@@ -11,8 +11,7 @@ export class PostsService {
     return this.prismaService.post.findMany()
   }
 
-  createPost(body: any): any {
-    const userId = 1;
+  createPost(body: any, userId: number): any {
     return this.prismaService.post.create({
       data: {
         title: body.title,
