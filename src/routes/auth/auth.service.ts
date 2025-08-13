@@ -3,7 +3,7 @@ import { PrismaService } from '../../shared/services/prisma.service';
 import { HashingService } from '../../shared/services/hashing.service';
 import { Prisma } from '../../../generated/prisma';
 import { TokenService } from 'src/shared/services/token.service';
-import { LoginBodyDto } from './auth.dto';
+import { LoginBodyDto, LogoutBodyDTO } from './auth.dto';
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helper';
 
 @Injectable()
@@ -105,4 +105,30 @@ export class AuthService {
             throw new UnauthorizedException
         }
     }
+
+
+    async logout(refreshToken: string) {
+        try {
+            //1. Kiểm tra xem refresh token có hợp lệ không
+            const userId = await this.tokenService.verifyRefreshToken(refreshToken);
+
+            //2. Xoa token 
+            await this.prismaService.refreshToken.delete({
+                where: {
+                    token: refreshToken
+                }
+            });
+
+            return {
+                message: 'Logout successfully'
+            }
+        } catch (error) {
+            // Truong hợp đã sử dụng refresh token hoặc token không hợp lệ
+            if(isNotFoundPrismaError(error)) {
+                throw new UnauthorizedException('Refresh token is invalid or has been used')
+            }
+            throw new UnauthorizedException
+        }
+    }
+    
 }

@@ -27,36 +27,33 @@ export class AuthenticationGuard implements CanActivate {
     async canActivate(
         context: ExecutionContext,
     ): Promise<boolean> {   
-      // console.log('AuthenticationGuard canActivate called');
     const authTypeValue = this.reflector.getAllAndOverride<AuthTypeDecoratorPayload | undefined>(AUTH_TYPES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]) ?? { authTypes: [AuthType.None], options: { condition: ConditionGuard.And } };
-    const guards = authTypeValue.authTypes.map((authType) => this.authTypeGuardMap[authType])
-    let error = UnauthorizedException 
-    if(authTypeValue.options.condition === ConditionGuard.Or) {
+         const guards = authTypeValue.authTypes.map((authType) => this.authTypeGuardMap[authType]);
+     let error = new UnauthorizedException();
+     if(authTypeValue.options.condition === ConditionGuard.Or) {
+        for(const instance of guards) {
+         try {
+           const canActivate = await instance.canActivate(context);
+           if(canActivate) {
+             return true; // If any guard allows access, return true
+           }
+         } catch (err) {
+           error = err;
+         }
+       }
+       throw error;
+     } else {
        for(const instance of guards) {
-        const canActivate = await Promise.resolve(instance.canActivate(context)).catch(err => {
-          error = err
-          return false
-        })
-        if(canActivate) {
-          return true; // If any guard allows access, return true
-        }
-      }
-      throw new error
-    } else {
-      for(const instance of guards) {
-        const canActivate = await Promise.resolve(instance.canActivate(context)).catch(err => {
-          error = err
-          return false
-        })
-        if(!canActivate) {
-          throw new UnauthorizedException();
-        }
-      }
-      return true; // API key is valid
-    }
+         const canActivate = await instance.canActivate(context);
+         if(!canActivate) {
+           throw new UnauthorizedException();
+         }
+       }
+       return true; // API key is valid
+     }
 
   }
 }
