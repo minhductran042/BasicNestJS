@@ -6,7 +6,7 @@ import envConfig from '../config';
 const SECRET_KEY = envConfig.SECRET_API_KEY;
 
 @Injectable()
-export class ApiKeynGuard implements CanActivate {
+export class ApiKeyGuard implements CanActivate {
      canActivate(
         context: ExecutionContext,
     ): boolean  {   
